@@ -1,0 +1,2 @@
+# whysoxcom
+ xcom discord bot
