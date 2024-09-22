@@ -31,6 +31,16 @@ async def init_test(ctx):
     team_1.save()
 
 
+@bot.command(description="Recruter un soldat dans une de vos équipes")
+async def recruter_un_soldat(ctx, equipe=-1):
+    if equipe == -1:
+        await ctx.respond("Veuillez choisir une équipe dans laquelle recruter ce soldat.")
+    else:
+        team = load_team(equipe, ctx.author)
+        await ctx.respond(f"Nom : {team.name}, propriétaire : {team.owner.name}, membres : {team.members}")
+
+
+
 """embed = discord.Embed(title="Inscription",
                           description="Démarrage de la partie, les joueurs on",
                           color=0xFF5733)"""
