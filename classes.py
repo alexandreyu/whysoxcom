@@ -1,36 +1,65 @@
+from os.path import exists
+
 from common import *
 
 
+def load_unit(unit_id):
+    with open("units.json") as units_file:
+        units_dict = json.load(units_file)
+    assert units_dict[str(unit_id)] is not None, "Unit_id not found in units.json"
+    unit_json = units_dict[str(unit_id)]
+    unit = Unit(unit_json["spec"], unit_id=unit_id, name=unit_json["name"], surname=unit_json["surname"], nickname=unit_json["nickname"], status=unit_json["status"], health=unit_json["health"], kill_count=unit_json["kill_count"], mission_count=unit_json["mission_count"])
+
+    return unit
+
+
+def save_unit(unit):
+    with open("units.json") as units_file:
+        units_dict = json.load(units_file)
+    units_dict[str(unit.unit_id)] = {
+            "name": unit.name,
+            "surname": unit.surname,
+            "nickname": unit.nickname,
+            "spec": str(unit.spec),
+            "status": unit.status,
+            "health": unit.health,
+            "kill_count": unit.kill_count,
+            "mission_count": unit.mission_count
+
+        }
+    with open("units.json", "w") as f:
+        json.dump(units_dict, f, indent=4)
+
+
+def save_unit_to_id(unit, value):
+    with open("units.json") as units_file:
+        units_dict = json.load(units_file)
+    units_dict[str(value)] = {
+        "name": unit.name,
+        "surname": unit.surname,
+        "nickname": unit.nickname,
+        "spec": str(unit.spec),
+        "status": unit.status,
+        "health": unit.health,
+        "kill_count": unit.kill_count,
+        "mission_count": unit.mission_count
+
+    }
+    print(units_dict)
+
+    with open("units.json", "w") as f:
+        json.dump(units_dict, f, indent=4)
+
+
 def attribute_unit_id():
-    with open("unit_ids.json") as f:
-        unit_ids_data = json.load(f)
-    ids = unit_ids_data["ids"]
+    with open("units.json") as f:
+        units_dict = json.load(f)
     search = 0
-    for i in ids:
-        if search != i:
-            register_unit_id(search)
+    for i in units_dict:
+        if search != int(i):
             return search
         search += 1
-    register_unit_id(search)
     return search
-
-
-def register_unit_id(value):
-    with open("unit_ids.json") as f:
-        data = json.load(f)
-        ids = data["ids"]
-        new_ids = ids.copy()
-        new_ids.append(value)
-        new_ids.sort()
-
-    unit_dict = {"ids": new_ids}
-    os.remove("unit_ids.json")
-    print("delete successful")
-    with open("unit_ids.json", "w") as f:
-        json.dump(unit_dict, f)
-
-def get_unit_with_id(value):
-    return None
 
 
 class Weapon:
@@ -65,6 +94,7 @@ class HEGrenade(Item):
 class Medkit(Item):
     def __init__(self):
         super().__init__("Medkit", 1, 1)
+
     pass
 
 
@@ -81,18 +111,28 @@ class Spec:
         self.base_health = base_health
         self.allowed_weapons = allowed_weapons
 
+    def __str__(self):
+        return self.name
+
 
 # Unit
 class Unit:
-    def __init__(self, team, spec, name="David", surname="Brittle"):
-        self.team = team
+    def __init__(self, spec, unit_id=attribute_unit_id(), name="David", surname="Brittle", nickname="", status="Alive", health=-1, kill_count=0, mission_count=0):
         self.spec = spec
         self.name = name
-        self.unit_id = attribute_unit_id()
         self.surname = surname
+        self.nickname = nickname
+        self.unit_id = unit_id
+        self.kill_count = kill_count
+        self.mission_count = mission_count
+        self.status = status
+        if health == -1:
+            self.health = spec.base_health
+        else:
+            self.health = health
 
-        self.health = 5
-        self.status = "Alive"
+    def save(self):
+        save_unit(self)
 
     def shoot_primary(self, target):
         pass
@@ -102,10 +142,12 @@ class Unit:
 
 
 class Team:
+    # A REFAIRE TOUT
+    # pour permettre des soldats blessés et not on duty
     def __init__(self, name, owner):
         self.name = name
         self.owner = owner
-        self.members = [None]*4
+        self.members = [None] * max_team_size
 
     def check_if_complete(self):
         for i in self.members:
@@ -119,11 +161,11 @@ class Team:
 
                 "owner": str(self.owner.username),
                 "name": str(self.name),
-                "members":  {"unit0": int(self.members[0].unit_id),
-                             "unit1": int(self.members[1].unit_id),
-                             "unit2": int(self.members[2].unit_id),
-                             "unit3": int(self.members[3].unit_id)}
-                }
+                "members": {"unit0": int(self.members[0].unit_id),
+                            "unit1": int(self.members[1].unit_id),
+                            "unit2": int(self.members[2].unit_id),
+                            "unit3": int(self.members[3].unit_id)}
+            }
             file = open("teams.json", "w")
             file.write(str(team_dict))
 
@@ -139,6 +181,7 @@ class TestButton(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
+
 # Iterations creation
 
 
@@ -150,14 +193,12 @@ cat_sniper = Category([30, 30, 40, 70, 80, 70])
 cat_pistol = Category([100, 90, 80, 70, 70, 60])
 cat_launcher = Category([100, 100, 100, 100, 90, 90])
 
-
 # Weapons Init : name, slot, category, min_damage, max_damage, crit_bonus
 weapon_assault_rifle = Weapon("Assault Rifle", 0, cat_rifle, 3, 5, 0)
 weapon_shotgun = Weapon("Shotgun", 0, cat_shotgun, 3, 7, 20)
 weapon_sniper_rifle = Weapon("Sniper Rifle", 0, cat_sniper, 3, 6, 40)
 weapon_pistol = Weapon("Pistol", 0, cat_pistol, 1, 3, 0)
 weapon_rocket_launcher = Weapon("Rocket Launcher", 0, cat_launcher, 6, 6, 0)
-
 
 # Spec Init : name, base_health, allowed_weapons
 spec_medic = Spec("Medic", 4, [cat_rifle, cat_pistol])

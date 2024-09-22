@@ -5,12 +5,11 @@ import random
 import mysql.connector
 import discord
 from dotenv import load_dotenv
-
+from game_settings import *
 
 load_dotenv()
 
-db = mysql.connector.connect(host="localhost",
-                             )
+# db = mysql.connector.connect(host="localhost")
 bot = discord.Bot(intents=discord.Intents.all())
 
 testing_servers = [1243269063631962172]

@@ -1,0 +1,12 @@
+{
+    "0": {
+        "name": "John",
+        "surname": "Bradford",
+        "nickname": "Central",
+        "spec": "Medic",
+        "status": "Alive",
+        "health": 5,
+        "kill_count": 0,
+        "mission_count": 0
+    }
+}
