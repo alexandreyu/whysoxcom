@@ -1,5 +1,3 @@
-import asyncio
-
 from classes import *
 
 
@@ -27,20 +25,22 @@ async def show_map(ctx):
 
 @bot.command(description="Init")
 async def init_test(ctx):
-    sol_1 = Unit(spec_medic)
-    # sol_1 = load_unit(0)
+    team_1 = load_team(f"(Team de {ctx.author.name})", ctx.author)
+    await ctx.respond(ctx.author.name)
+    team_1.add_member(0)
+    team_1.save()
+
+
+"""embed = discord.Embed(title="Inscription",
+                          description="Démarrage de la partie, les joueurs on",
+                          color=0xFF5733)"""
+"""sol_1 = Unit(spec_medic)
     print(sol_1.spec)
-    await ctx.respond("Init started")
-    await ctx.respond("Processing...")
     await ctx.respond(f"Unit's id is {sol_1.unit_id}, name is {sol_1.name}, surname is {sol_1.surname}, "
                       f"nickname is {sol_1.nickname}, specialization is {sol_1.spec}, status is {sol_1.status}, "
                       f"kill count is {sol_1.kill_count}, mission count is {sol_1.mission_count}.")
     save_unit(sol_1)
-    # print(str(spec_medic))
-"""embed = discord.Embed(title="Inscription",
-                          description="Démarrage de la partie, les joueurs on",
-                          color=0xFF5733)"""
-
+    # print(str(spec_medic))"""
 
 """@bot.command(description="Inspect unit")
 async def inspect_unit(ctx, unit_id):

@@ -13,27 +13,6 @@ def load_unit(unit_id):
     return unit
 
 
-def save_unit(unit):
-    with open("units.json") as units_file:
-        units_dict = json.load(units_file)
-    units_dict[str(unit.unit_id)] = dict(name=unit.name, surname=unit.surname, nickname=unit.nickname,
-                                         spec=str(unit.spec), status=unit.status, health=unit.health,
-                                         kill_count=unit.kill_count, mission_count=unit.mission_count)
-    with open("units.json", "w") as f:
-        json.dump(units_dict, f, indent=4)
-
-
-def save_unit_to_id(unit, value):
-    with open("units.json") as units_file:
-        units_dict = json.load(units_file)
-    units_dict[str(value)] = dict(name=unit.name, surname=unit.surname, nickname=unit.nickname, spec=str(unit.spec),
-                                  status=unit.status, health=unit.health, kill_count=unit.kill_count,
-                                  mission_count=unit.mission_count)
-
-    with open("units.json", "w") as f:
-        json.dump(units_dict, f, indent=4)
-
-
 def attribute_unit_id():
     with open("units.json") as f:
         units_dict = json.load(f)
@@ -43,6 +22,17 @@ def attribute_unit_id():
             return search
         search += 1
     return search
+
+
+def load_team(name, owner):
+    with open("teams.json") as teams_file:
+        teams_dict = json.load(teams_file)
+
+    team_json = teams_dict[owner.name]
+    for i in range(len(team_json)):
+        if name == team_json[i]["name"]:
+            team = Team(name, owner, members=team_json[i]["members"])
+            return team
 
 
 class Weapon:
@@ -122,9 +112,24 @@ class Unit:
         if health == -1:
             self.health = spec.base_health
 
-
     def save(self):
-        save_unit(self)
+        with open("units.json") as units_file:
+            units_dict = json.load(units_file)
+        units_dict[str(self.unit_id)] = dict(name=self.name, surname=self.surname, nickname=self.nickname,
+                                             spec=str(self.spec), status=self.status, health=self.health,
+                                             kill_count=self.kill_count, mission_count=self.mission_count)
+        with open("units.json", "w") as f:
+            json.dump(units_dict, f, indent=4)
+
+    def save_to_id(self, value):
+        with open("units.json") as units_file:
+            units_dict = json.load(units_file)
+        units_dict[str(value)] = dict(name=self.name, surname=self.surname, nickname=self.nickname, spec=str(self.spec),
+                                      status=self.status, health=self.health, kill_count=self.kill_count,
+                                      mission_count=self.mission_count)
+
+        with open("units.json", "w") as f:
+            json.dump(units_dict, f, indent=4)
 
     def shoot_primary(self, target):
         pass
@@ -134,38 +139,38 @@ class Unit:
 
 
 class Team:
-    # A REFAIRE TOUT
-    # pour permettre des soldats blessés et not on duty
-    def __init__(self, name, owner):
+    def __init__(self, name, owner, members=None):
+        if members is None:
+            members = []
         self.name = name
         self.owner = owner
-        self.members = [None] * max_team_size
+        self.members = members
 
-    def check_if_complete(self):
-        for i in self.members:
-            if i is not Unit:
-                return False
-        return True
+    def add_member(self, unit_id):
+        if unit_id not in self.members:
+            free = True
+            with open("teams.json") as f:
+                teams_dict = json.load(f)
+            for i in teams_dict:
+                for j in range(len(teams_dict[i])):
+                    if unit_id in teams_dict[i][j]["members"]:
+                        free = False
+            if free:
+                self.members.append(unit_id)
+
+    def remove_member(self, unit_id):
+        if unit_id in self.members:
+            self.members.remove(unit_id)
 
     def save(self):
-        if self.check_if_complete():
-            team_dict = {
+        with open("teams.json") as f:
+            teams_dict = json.load(f)
+        for i in range(len(teams_dict[self.owner.name])):
+            if self.name == teams_dict[self.owner.name][i]["name"]:
+                teams_dict[self.owner.name][i]["members"] = self.members
 
-                "owner": str(self.owner.username),
-                "name": str(self.name),
-                "members": {"unit0": int(self.members[0].unit_id),
-                            "unit1": int(self.members[1].unit_id),
-                            "unit2": int(self.members[2].unit_id),
-                            "unit3": int(self.members[3].unit_id)}
-            }
-            file = open("teams.json", "w")
-            file.write(str(team_dict))
-
-    def add_member(self, unit):
-        for i in range(len(self.members)):
-            if self.members[i] is None:
-                self.members[i] = unit
-            # save()
+        with open("teams.json", "w") as f:
+            json.dump(teams_dict, f, indent=4)
 
 
 # Buttons
@@ -175,7 +180,6 @@ class TestButton(discord.ui.View):
 
 
 # Iterations creation
-
 
 # Category Init :
 # Accuracy Profile : 0 to 3m, 3 to 7m, 7 to 10m, 10 to 15m, 15 to 20m+
