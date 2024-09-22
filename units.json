@@ -8,15 +8,5 @@
         "health": 5,
         "kill_count": 0,
         "mission_count": 0
-    },
-    "1": {
-        "name": "David",
-        "surname": "Brittle",
-        "nickname": "",
-        "spec": "Medic",
-        "status": "Alive",
-        "health": 4,
-        "kill_count": 0,
-        "mission_count": 0
     }
 }

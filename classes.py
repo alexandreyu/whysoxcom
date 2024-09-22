@@ -1,5 +1,3 @@
-from os.path import exists
-
 from common import *
 
 
@@ -8,7 +6,9 @@ def load_unit(unit_id):
         units_dict = json.load(units_file)
     assert units_dict[str(unit_id)] is not None, "Unit_id not found in units.json"
     unit_json = units_dict[str(unit_id)]
-    unit = Unit(unit_json["spec"], unit_id=unit_id, name=unit_json["name"], surname=unit_json["surname"], nickname=unit_json["nickname"], status=unit_json["status"], health=unit_json["health"], kill_count=unit_json["kill_count"], mission_count=unit_json["mission_count"])
+    unit = Unit(unit_json["spec"], unit_id=unit_id, name=unit_json["name"], surname=unit_json["surname"],
+                nickname=unit_json["nickname"], status=unit_json["status"], health=unit_json["health"],
+                kill_count=unit_json["kill_count"], mission_count=unit_json["mission_count"])
 
     return unit
 
@@ -16,17 +16,9 @@ def load_unit(unit_id):
 def save_unit(unit):
     with open("units.json") as units_file:
         units_dict = json.load(units_file)
-    units_dict[str(unit.unit_id)] = {
-            "name": unit.name,
-            "surname": unit.surname,
-            "nickname": unit.nickname,
-            "spec": str(unit.spec),
-            "status": unit.status,
-            "health": unit.health,
-            "kill_count": unit.kill_count,
-            "mission_count": unit.mission_count
-
-        }
+    units_dict[str(unit.unit_id)] = dict(name=unit.name, surname=unit.surname, nickname=unit.nickname,
+                                         spec=str(unit.spec), status=unit.status, health=unit.health,
+                                         kill_count=unit.kill_count, mission_count=unit.mission_count)
     with open("units.json", "w") as f:
         json.dump(units_dict, f, indent=4)
 
@@ -34,18 +26,9 @@ def save_unit(unit):
 def save_unit_to_id(unit, value):
     with open("units.json") as units_file:
         units_dict = json.load(units_file)
-    units_dict[str(value)] = {
-        "name": unit.name,
-        "surname": unit.surname,
-        "nickname": unit.nickname,
-        "spec": str(unit.spec),
-        "status": unit.status,
-        "health": unit.health,
-        "kill_count": unit.kill_count,
-        "mission_count": unit.mission_count
-
-    }
-    print(units_dict)
+    units_dict[str(value)] = dict(name=unit.name, surname=unit.surname, nickname=unit.nickname, spec=str(unit.spec),
+                                  status=unit.status, health=unit.health, kill_count=unit.kill_count,
+                                  mission_count=unit.mission_count)
 
     with open("units.json", "w") as f:
         json.dump(units_dict, f, indent=4)
@@ -117,7 +100,8 @@ class Spec:
 
 # Unit
 class Unit:
-    def __init__(self, spec, unit_id=attribute_unit_id(), name="David", surname="Brittle", nickname="", status="Alive", health=-1, kill_count=0, mission_count=0):
+    def __init__(self, spec, unit_id=-1, name="", surname="",
+                 nickname="", status="Alive", health=-1, kill_count=0, mission_count=0):
         self.spec = spec
         self.name = name
         self.surname = surname
@@ -126,10 +110,18 @@ class Unit:
         self.kill_count = kill_count
         self.mission_count = mission_count
         self.status = status
+        self.health = health
+        self.unit_id = attribute_unit_id()
+
+        if name == "":
+            self.name = random.choice(names)
+
+        if surname == "":
+            self.surname = random.choice(surnames)
+
         if health == -1:
             self.health = spec.base_health
-        else:
-            self.health = health
+
 
     def save(self):
         save_unit(self)
