@@ -6,7 +6,7 @@ import mysql.connector
 import discord
 from dotenv import load_dotenv
 from game_settings import *
-
+import math
 load_dotenv()
 
 # db = mysql.connector.connect(host="localhost")

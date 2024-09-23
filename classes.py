@@ -102,6 +102,9 @@ class Unit:
         self.status = status
         self.health = health
         self.unit_id = attribute_unit_id()
+        self.in_combat = False
+        self.pos = [-1, -1]
+        self.cover = "None"
 
         if name == "":
             self.name = random.choice(names)
@@ -130,6 +133,41 @@ class Unit:
 
         with open("units.json", "w") as f:
             json.dump(units_dict, f, indent=4)
+
+    def distance_to_target(self, target):
+        if self.in_combat:
+            distance = math.sqrt((self.pos[0]-target.pos[0])**2 +(self.pos[1]-target.pos[1])**2)
+            return distance
+
+    def weapon_accuracy(self, target, weapon):
+        distance = self.distance_to_target(target)
+        accuracy = 0
+        # Accuracy Profile : 0 to 3m, 3 to 7m, 7 to 10m, 10 to 15m, 15 to 20m+
+
+        if distance < 3:
+            accuracy += weapon.category.acc_profile[0]
+        elif 3 <= distance < 7:
+            accuracy += weapon.category.acc_profile[1]
+        elif 7 <= distance < 10:
+            accuracy += weapon.category.acc_profile[2]
+        elif 10 <= distance < 15:
+            accuracy += weapon.category.acc_profile[3]
+        elif 15 <= distance < 20:
+            accuracy += weapon.category.acc_profile[4]
+        elif 20 <= distance:
+            accuracy += weapon.category.acc_profile[5]
+
+        if target.cover == "Full":
+            accuracy += -40
+        elif target.cover == "Partial":
+            accuracy += -20
+
+        if accuracy < 0:
+            return 0
+        elif accuracy > 100:
+            return 100
+        else:
+            return accuracy
 
     def shoot_primary(self, target):
         pass
