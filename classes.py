@@ -1,15 +1,17 @@
 from common import *
 
 
-def load_unit(unit_id):
+def load_unit(unit_id, save_to_json=True):
     with open("units.json") as units_file:
         units_dict = json.load(units_file)
     assert units_dict[str(unit_id)] is not None, "Unit_id not found in units.json"
     unit_json = units_dict[str(unit_id)]
     unit = Unit(unit_json["spec"], unit_id=unit_id, name=unit_json["name"], surname=unit_json["surname"],
                 nickname=unit_json["nickname"], status=unit_json["status"], health=unit_json["health"],
-                kill_count=unit_json["kill_count"], mission_count=unit_json["mission_count"])
-
+                kill_count=unit_json["kill_count"], mission_count=unit_json["mission_count"],
+                inventory=unit_json["inventory"])
+    if save_to_json:
+        unit.save()
     return unit
 
 
@@ -34,6 +36,9 @@ def load_team(name, owner):
             team = Team(name, owner, members=team_json[i]["members"])
             return team
 
+def search_unit_in_teams(unit_id):
+    pass
+
 
 class Weapon:
     def __init__(self, name, slot, category, min_damage, max_damage, crit_bonus=0):
@@ -43,6 +48,9 @@ class Weapon:
         self.min_damage = min_damage
         self.max_damage = max_damage
         self.crit_bonus = crit_bonus
+
+    def __str__(self):
+        return self.name
 
 
 # Items
@@ -91,17 +99,19 @@ class Spec:
 # Unit
 class Unit:
     def __init__(self, spec, unit_id=-1, name="", surname="",
-                 nickname="", status="Alive", health=-1, kill_count=0, mission_count=0):
+                 nickname="", status="Alive", health=-1, kill_count=0, mission_count=0, inventory=-1):
         self.spec = spec
         self.name = name
         self.surname = surname
         self.nickname = nickname
         self.unit_id = unit_id
-        self.kill_count = kill_count
-        self.mission_count = mission_count
         self.status = status
         self.health = health
-        self.unit_id = attribute_unit_id()
+        self.kill_count = kill_count
+        self.mission_count = mission_count
+        self.inventory = inventory
+        if self.unit_id == -1:
+            self.unit_id = attribute_unit_id()
         self.in_combat = False
         self.pos = [-1, -1]
         self.cover = "None"
@@ -115,12 +125,16 @@ class Unit:
         if health == -1:
             self.health = spec.base_health
 
+        if inventory == -1:
+            self.inventory = ["", ""]
+
     def save(self):
         with open("units.json") as units_file:
             units_dict = json.load(units_file)
         units_dict[str(self.unit_id)] = dict(name=self.name, surname=self.surname, nickname=self.nickname,
                                              spec=str(self.spec), status=self.status, health=self.health,
-                                             kill_count=self.kill_count, mission_count=self.mission_count)
+                                             kill_count=self.kill_count, mission_count=self.mission_count,
+                                             inventory=self.inventory)
         with open("units.json", "w") as f:
             json.dump(units_dict, f, indent=4)
 
@@ -136,7 +150,7 @@ class Unit:
 
     def distance_to_target(self, target):
         if self.in_combat:
-            distance = math.sqrt((self.pos[0]-target.pos[0])**2 +(self.pos[1]-target.pos[1])**2)
+            distance = math.sqrt((self.pos[0]-target.pos[0])**2 + (self.pos[1]-target.pos[1])**2)
             return distance
 
     def weapon_accuracy(self, target, weapon):
@@ -183,6 +197,7 @@ class Team:
         self.name = name
         self.owner = owner
         self.members = members
+        self.save()
 
     def add_member(self, unit_id):
         if unit_id not in self.members:
@@ -211,7 +226,6 @@ class Team:
                     teams_dict[self.owner.name][i]["members"] = self.members
                 else:
                     teams_dict[self.owner.name].append({"name": self.name, "members": self.members})
-
         with open("teams.json", "w") as f:
             json.dump(teams_dict, f, indent=4)
 
@@ -228,6 +242,7 @@ class TestButton(discord.ui.View):
 # Accuracy Profile : 0 to 3m, 3 to 7m, 7 to 10m, 10 to 15m, 15 to 20m+
 cat_rifle = Category([90, 80, 70, 60, 50, 40])
 cat_shotgun = Category([100, 90, 80, 60, 40, 20])
+cat_machinegun = Category([90, 70, 60, 50, 50, 50])
 cat_sniper = Category([30, 30, 40, 70, 80, 70])
 cat_pistol = Category([100, 90, 80, 70, 70, 60])
 cat_launcher = Category([100, 100, 100, 100, 90, 90])
@@ -235,10 +250,13 @@ cat_launcher = Category([100, 100, 100, 100, 90, 90])
 # Weapons Init : name, slot, category, min_damage, max_damage, crit_bonus
 weapon_assault_rifle = Weapon("Assault Rifle", 0, cat_rifle, 3, 5, 0)
 weapon_shotgun = Weapon("Shotgun", 0, cat_shotgun, 3, 7, 20)
+weapon_machinegun = Weapon("LMG", 0, cat_machinegun, 4, 5, 0)
 weapon_sniper_rifle = Weapon("Sniper Rifle", 0, cat_sniper, 3, 6, 40)
-weapon_pistol = Weapon("Pistol", 0, cat_pistol, 1, 3, 0)
-weapon_rocket_launcher = Weapon("Rocket Launcher", 0, cat_launcher, 6, 6, 0)
+weapon_pistol = Weapon("Pistol", 1, cat_pistol, 1, 3, 0)
+weapon_rocket_launcher = Weapon("Rocket Launcher", 1, cat_launcher, 6, 6, 0)
 
 # Spec Init : name, base_health, allowed_weapons
-spec_medic = Spec("Medic", 4, [cat_rifle, cat_pistol])
-spec_heavy = Spec("Heavy", 5, [cat_rifle, cat_pistol])
+spec_medic = Spec("Medic", 5, [cat_rifle, cat_pistol])
+spec_ranger = Spec("Ranger", 5, [cat_rifle, cat_shotgun, cat_pistol])
+spec_heavy = Spec("Heavy", 6, [cat_machinegun, cat_launcher])
+spec_sniper = Spec("Sniper", 4, [cat_sniper, cat_pistol])

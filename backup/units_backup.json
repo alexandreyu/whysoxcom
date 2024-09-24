@@ -7,6 +7,10 @@
         "status": "Alive",
         "health": 5,
         "kill_count": 0,
-        "mission_count": 0
+        "mission_count": 0,
+        "inventory": [
+            "Assault Rifle",
+            "Pistol"
+        ]
     }
 }
