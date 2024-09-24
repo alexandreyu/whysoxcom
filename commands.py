@@ -24,11 +24,33 @@ async def show_map(ctx):
 
 
 @bot.command(description="Init")
-async def init_test(ctx):
-    team_1 = load_team(f"(Team de {ctx.author.name})", ctx.author)
+async def init_test(ctx, nom):
+    team_1 = load_team(nom, ctx.author)
     await ctx.respond(ctx.author.name)
     team_1.add_member(0)
     team_1.save()
+
+
+@bot.command(description="Créer une équipe")
+async def creer_equipe(ctx, nom=-1):
+    if nom == -1:
+        nom = f"Team de {ctx.author.name}"
+
+    with open("teams.json") as f:
+        data = json.load(f)
+
+    exists = False
+    for i in data:
+        if i == ctx.author.name:
+            for j in range(len(data[i])):
+                print(data[i])
+                if data[i][j]["name"] == nom:
+                    await ctx.respond("Cette équipe existe déjà !")
+                    exists = True
+    if not exists:
+        team = Team(name=nom, owner=ctx.author)
+        team.save()
+        await ctx.respond(f"Nom de l'équipe : {team.name}, propriétaire : {team.owner.name}.")
 
 
 @bot.command(description="Recruter un soldat dans une de vos équipes")
