@@ -36,23 +36,25 @@ async def init_test(ctx, nom):
 
 @bot.command(description="Créer une équipe")
 async def creer_equipe(ctx, nom=-1):
-    if nom == -1:
-        nom = f"Team de {ctx.author.name}"
-
     with open("teams.json") as f:
-        data = json.load(f)
+        teams_data = json.load(f)
+    number_of_teams = 0
+    if ctx.author.name in teams_data:
+        number_of_teams = len(teams_data[ctx.author.name])
+    if nom == -1:
+        nom = f"Equipe {number_of_teams + 1}"
 
     exists = False
-    for i in data:
+    for i in teams_data:
         if i == ctx.author.name:
-            for j in range(len(data[i])):
-                print(data[i])
-                if data[i][j]["name"] == nom:
+            for j in range(len(teams_data[i])):
+                print(teams_data[i])
+                if teams_data[i][j]["name"] == nom:
                     await ctx.respond("Cette équipe existe déjà !")
                     exists = True
     if not exists:
         team = Team(name=nom, owner=ctx.author)
-        await ctx.respond(f"Nom de l'équipe : {team.name}, propriétaire : {team.owner.name}.")
+        await ctx.respond(f"Vous avez créé {team.name}.")
 
 
 @bot.command(description="Recruter un soldat dans une de vos équipes")
@@ -62,6 +64,7 @@ async def recruter_soldat(ctx, equipe=-1):
     owns_a_team = False
     team = None
     proceed = True
+    full = False
     for i in data:
         if i == ctx.author.name:
             owns_a_team = True
@@ -75,7 +78,10 @@ async def recruter_soldat(ctx, equipe=-1):
         if equipe == -1:
             equipe = "Equipe 1"
         team = Team(name=equipe, owner=ctx.author)
-    if proceed:
+    if len(team.members) >= max_team_size:
+        full = True
+        await ctx.respond(f"Cette équipe est pleine ! (Maximum {max_team_size} soldats)")
+    if proceed and not full:
         unit = Unit(spec_medic)
         unit.save()
         team.add_member(unit.unit_id)
@@ -121,6 +127,7 @@ async def info_equipe(ctx, nom, nom_proprietaire=-1):
 
 @bot.command(description="Attention ! Cette commande détruira définitivement ce soldat")
 async def retraite_soldat(ctx, id_soldat):
+
     with open("teams.json") as f:
         teams_data = json.load(f)
 
@@ -129,12 +136,15 @@ async def retraite_soldat(ctx, id_soldat):
 
     unit = load_unit(str(id_soldat), save_to_json=False)
 
-    for i in teams_data:
-        if i == ctx.author.name:
-            for j in range(len(teams_data[i])):
-                for k in range(len(teams_data[i][j]["members"])):
-                    if str(teams_data[i][j]["members"][k]) == str(id_soldat):
-                        del teams_data[i][j]["members"][k]
+    stop = False
+    for i in range(len(teams_data[ctx.author.name])):
+        if int(id_soldat) in teams_data[ctx.author.name][i]["members"]:
+            for j in range(len(teams_data[ctx.author.name][i]["members"])):
+                while not stop:
+                    if id_soldat == str(teams_data[ctx.author.name][i]["members"][j]):
+                        teams_data[ctx.author.name][i]["members"].remove(int(id_soldat))
+                        stop = True
+
     nickname = " "
     if unit.nickname != "":
         nickname += f"'{unit.nickname}' "
@@ -150,8 +160,66 @@ async def retraite_soldat(ctx, id_soldat):
                       f" Merci pour votre service.")
 
 
+@bot.command(description="Infos d'un soldat.")
+async def info_soldat(ctx, id_soldat):
+    with open("units.json") as f:
+        units_data = json.load(f)
 
-@bot.command(description="Changer les armes d'un soldat")
+    proceed = False
+    if id_soldat in units_data:
+        proceed = True
+    if proceed:
+        unit = load_unit(id_soldat, save_to_json=False)
+        nickname = " "
+        if unit.nickname != "":
+            nickname += f"'{unit.nickname}' "
+        info = f"Nom : {unit.name}{nickname}{unit.surname}\n"
+        info += (f"Spécialisation : {unit.spec}\n"
+                 f"Statut : {unit.status}\n"
+                 f"Ennemis tués : {unit.kill_count}\n"
+                 f"Missions terminées : {unit.mission_count}\n"
+                 f"\n")
+        if unit.inventory[0] != "":
+            info += f"Arme Principale : {unit.inventory[0]}\n"
+        if unit.inventory[1] != "":
+            info += f"Arme Secondaire : {unit.inventory[1]}\n"
+        await ctx.respond(info)
+    else:
+        await ctx.respond("Ce soldat n'existe pas.")
+
+
+@bot.command(description="Échange deux soldats de deux de vos équipes")
+async def echanger_soldat(ctx, id_soldat_1, id_soldat_2):
+    with open("units.json") as f:
+        units_data = json.load(f)
+    with open("teams.json") as f:
+        teams_data = json.load(f)
+
+    if (id_soldat_1 in units_data) and (id_soldat_2 in units_data):
+        unit_1_in_team = False
+        team_1_id = -1
+        unit_2_in_team = False
+        for i in range(len(teams_data[ctx.author.name])):
+            print(i)
+            for j in teams_data[ctx.author.name][i]["members"]:
+                print(teams_data[ctx.author.name][i])
+                if str(teams_data[ctx.author.name][i]["members"][j]) == id_soldat_1:
+                    unit_1_in_team = True
+                    team_1_id = j
+                if str(teams_data[ctx.author.name][i]["members"][j]) == id_soldat_2:
+                    unit_2_in_team = True
+                    team_2_id = j
+        if unit_1_in_team and unit_2_in_team:
+            # teams_data[ctx.author.name]
+            await ctx.respond("Zob")
+
+
+    else:
+        await ctx.respond("Au moins une des deux unités n'existe pas.")
+
+
+
+@bot.command(description="Changer les armes d'un soldat.")
 async def equiper_soldat(ctx, id_soldat):
     pass
 

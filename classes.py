@@ -218,9 +218,13 @@ class Team:
     def save(self):
         with open("teams.json") as f:
             teams_dict = json.load(f)
+
         if self.owner.name not in teams_dict:
             teams_dict[self.owner.name] = [{"name": self.name, "members": self.members}]
         else:
+            for k in range(len(teams_dict[self.owner.name])):
+                if teams_dict[self.owner.name][k]["name"] == self.name:
+                    del teams_dict[self.owner.name][k]
             for i in range(len(teams_dict[self.owner.name])):
                 if self.name == teams_dict[self.owner.name][i]["name"]:
                     teams_dict[self.owner.name][i]["members"] = self.members

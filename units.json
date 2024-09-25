@@ -12,5 +12,103 @@
             "Assault Rifle",
             "Pistol"
         ]
+    },
+    "1": {
+        "name": "James",
+        "surname": "Dexter",
+        "nickname": "",
+        "spec": "Medic",
+        "status": "Alive",
+        "health": 5,
+        "kill_count": 0,
+        "mission_count": 0,
+        "inventory": [
+            "",
+            ""
+        ]
+    },
+    "2": {
+        "name": "James",
+        "surname": "Smith",
+        "nickname": "",
+        "spec": "Medic",
+        "status": "Alive",
+        "health": 5,
+        "kill_count": 0,
+        "mission_count": 0,
+        "inventory": [
+            "",
+            ""
+        ]
+    },
+    "3": {
+        "name": "James",
+        "surname": "Dexter",
+        "nickname": "",
+        "spec": "Medic",
+        "status": "Alive",
+        "health": 5,
+        "kill_count": 0,
+        "mission_count": 0,
+        "inventory": [
+            "",
+            ""
+        ]
+    },
+    "5": {
+        "name": "James",
+        "surname": "Dexter",
+        "nickname": "",
+        "spec": "Medic",
+        "status": "Alive",
+        "health": 5,
+        "kill_count": 0,
+        "mission_count": 0,
+        "inventory": [
+            "",
+            ""
+        ]
+    },
+    "6": {
+        "name": "John",
+        "surname": "Smith",
+        "nickname": "",
+        "spec": "Medic",
+        "status": "Alive",
+        "health": 5,
+        "kill_count": 0,
+        "mission_count": 0,
+        "inventory": [
+            "",
+            ""
+        ]
+    },
+    "7": {
+        "name": "John",
+        "surname": "Dexter",
+        "nickname": "",
+        "spec": "Medic",
+        "status": "Alive",
+        "health": 5,
+        "kill_count": 0,
+        "mission_count": 0,
+        "inventory": [
+            "",
+            ""
+        ]
+    },
+    "4": {
+        "name": "John",
+        "surname": "Smith",
+        "nickname": "",
+        "spec": "Medic",
+        "status": "Alive",
+        "health": 5,
+        "kill_count": 0,
+        "mission_count": 0,
+        "inventory": [
+            "",
+            ""
+        ]
     }
 }
